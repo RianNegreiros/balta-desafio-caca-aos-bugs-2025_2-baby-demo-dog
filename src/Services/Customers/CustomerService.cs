@@ -2,13 +2,15 @@ using BugStore.Data;
 using BugStore.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace BugStore.Handlers.Customers;
+namespace BugStore.Services.Customers;
 
-public static class Handler
+public class CustomerService(AppDbContext db) : ICustomerService
 {
-    public static async Task<BugStore.Responses.Customers.Get> GetAsync(BugStore.Requests.Customers.Get request, AppDbContext db)
+    private readonly AppDbContext _db = db;
+
+    public async Task<BugStore.Responses.Customers.Get> GetAsync(BugStore.Requests.Customers.Get request)
     {
-        var queryable = db.Customers.AsNoTracking().AsQueryable();
+        var queryable = _db.Customers.AsNoTracking().AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(request.Query))
         {
@@ -43,9 +45,9 @@ public static class Handler
         };
     }
 
-    public static async Task<BugStore.Responses.Customers.GetById?> GetByIdAsync(BugStore.Requests.Customers.GetById request, AppDbContext db)
+    public async Task<BugStore.Responses.Customers.GetById?> GetByIdAsync(BugStore.Requests.Customers.GetById request)
     {
-        var c = await db.Customers.AsNoTracking().FirstOrDefaultAsync(x => x.Id == request.Id);
+        var c = await _db.Customers.AsNoTracking().FirstOrDefaultAsync(x => x.Id == request.Id);
         if (c is null) return null;
         return new BugStore.Responses.Customers.GetById
         {
@@ -57,7 +59,7 @@ public static class Handler
         };
     }
 
-    public static async Task<BugStore.Responses.Customers.Create> CreateAsync(BugStore.Requests.Customers.Create request, AppDbContext db)
+    public async Task<BugStore.Responses.Customers.Create> CreateAsync(BugStore.Requests.Customers.Create request)
     {
         var entity = new Customer
         {
@@ -68,8 +70,8 @@ public static class Handler
             BirthDate = request.BirthDate
         };
 
-        db.Customers.Add(entity);
-        await db.SaveChangesAsync();
+        _db.Customers.Add(entity);
+        await _db.SaveChangesAsync();
 
         return new BugStore.Responses.Customers.Create
         {
@@ -81,9 +83,9 @@ public static class Handler
         };
     }
 
-    public static async Task<BugStore.Responses.Customers.Update?> UpdateAsync(Guid id, BugStore.Requests.Customers.Update request, AppDbContext db)
+    public async Task<BugStore.Responses.Customers.Update?> UpdateAsync(Guid id, BugStore.Requests.Customers.Update request)
     {
-        var entity = await db.Customers.FirstOrDefaultAsync(x => x.Id == id);
+        var entity = await _db.Customers.FirstOrDefaultAsync(x => x.Id == id);
         if (entity is null) return null;
 
         entity.Name = request.Name;
@@ -91,7 +93,7 @@ public static class Handler
         entity.Phone = request.Phone;
         entity.BirthDate = request.BirthDate;
 
-        await db.SaveChangesAsync();
+        await _db.SaveChangesAsync();
 
         return new BugStore.Responses.Customers.Update
         {
@@ -103,17 +105,19 @@ public static class Handler
         };
     }
 
-    public static async Task<BugStore.Responses.Customers.Delete> DeleteAsync(BugStore.Requests.Customers.Delete request, AppDbContext db)
+    public async Task<BugStore.Responses.Customers.Delete> DeleteAsync(BugStore.Requests.Customers.Delete request)
     {
-        var entity = await db.Customers.FirstOrDefaultAsync(x => x.Id == request.Id);
+        var entity = await _db.Customers.FirstOrDefaultAsync(x => x.Id == request.Id);
         if (entity is null)
         {
             return new BugStore.Responses.Customers.Delete { Id = request.Id, Deleted = false };
         }
 
-        db.Customers.Remove(entity);
-        await db.SaveChangesAsync();
+        _db.Customers.Remove(entity);
+        await _db.SaveChangesAsync();
 
         return new BugStore.Responses.Customers.Delete { Id = request.Id, Deleted = true };
     }
 }
+
+

@@ -1,21 +1,28 @@
+using System;
+using BugStore.Data;
+using BugStore.Endpoints;
+using BugStore.Services.Customers;
+using BugStore.Services.Products;
+using BugStore.Services.Orders;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+    
+builder.Services.AddScoped<ICustomerService, CustomerService>();
+builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
+
 var app = builder.Build();
 
 app.MapGet("/", () => "Hello World!");
 
-app.MapGet("/v1/customers", () => "Hello World!");
-app.MapGet("/v1/customers/{id}", () => "Hello World!");
-app.MapPost("/v1/customers", () => "Hello World!");
-app.MapPut("/v1/customers/{id}", () => "Hello World!");
-app.MapDelete("/v1/customers/{id}", () => "Hello World!");
+app.MapCustomerEndpoints();
 
-app.MapGet("/v1/products", () => "Hello World!");
-app.MapGet("/v1/products/{id}", () => "Hello World!");
-app.MapPost("/v1/products", () => "Hello World!");
-app.MapPut("/v1/products/{id}", () => "Hello World!");
-app.MapDelete("/v1/products/{id}", () => "Hello World!");
+app.MapProductEndpoints();
 
-app.MapGet("/v1/orders/{id}", () => "Hello World!");
-app.MapPost("/v1/orders", () => "Hello World!");
+app.MapOrderEndpoints();
 
 app.Run();
